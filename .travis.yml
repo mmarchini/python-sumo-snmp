@@ -1,0 +1,14 @@
+language: python
+env:
+  - SUMO_HOME=/usr/share/sumo
+python:
+  - "2.7"
+# command to install dependencies
+before_install: 
+  - sudo apt-get update -qq
+  - sudo apt-cache search -qq sumo 
+  - sudo apt-get install -qq sumo 
+# command to install dependencies
+install: "pip install -r requirements.txt"
+# command to run tests
+script: nosetests
