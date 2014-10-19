@@ -5,6 +5,7 @@ python:
   - "2.7"
 # command to install dependencies
 before_install: 
+  - sudo add-apt-repository ppa:sumo/stable
   - sudo apt-get update -qq
   - sudo apt-cache search -qq sumo 
   - sudo apt-get install -qq sumo 
