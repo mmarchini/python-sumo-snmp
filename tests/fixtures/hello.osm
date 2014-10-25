@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version='0.6' upload='true' generator='JOSM'>
+  <node id='-127' action='modify' visible='true' lat='-1.7880792092890854' lon='-14.75317394636258' />
+  <node id='-125' action='modify' visible='true' lat='-1.7880856968817098' lon='-14.754098360655709'>
+    <tag k='highway' v='traffic_signals' />
+  </node>
+  <node id='-124' action='modify' visible='true' lat='-1.7878121452132212' lon='-14.754908403879456' />
+  <way id='-126' action='modify' visible='true'>
+    <nd ref='-124' />
+    <nd ref='-125' />
+    <nd ref='-127' />
+    <tag k='highway' v='primary' />
+    <tag k='lanes' v='1' />
+    <tag k='layer' v='1' />
+    <tag k='maxspeed' v='40' />
+    <tag k='oneway' v='yes' />
+    <tag k='surface' v='paved' />
+  </way>
+</osm>

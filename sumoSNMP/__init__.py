@@ -14,6 +14,12 @@ class Sumo(object):
 
         self._traci.init(port)
 
+    def __enter__(self,):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
     def close(self):
         self._traci.close()
 
@@ -23,4 +29,10 @@ class Sumo(object):
 
     def get_all_vehicles(self):
         return self._traci.vehicle.getIDList()
+
+    def get_all_traffic_lights(self):
+        return self._traci.trafficlights.getIDList()
+
+    def traffic_light_state(self, traffic_light):
+        return self._traci.trafficlights.getRedYellowGreenState(traffic_light)
 
