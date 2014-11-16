@@ -1,0 +1,689 @@
+TRAFFIC-MIB DEFINITIONS ::= BEGIN
+
+-- SMI v2 specification of the Traffic MIB
+
+-- Imports --
+
+IMPORTS MODULE-IDENTITY, OBJECT-TYPE, Unsigned32, Counter64, Integer32, enterprises FROM SNMPv2-SMI
+    TimeStamp, TimeInterval FROM SNMPv2-TC
+    OBJECT-GROUP, MODULE-COMPLIANCE FROM SNMPv2-CONF; 
+
+traffic MODULE-IDENTITY
+    LAST-UPDATED "201408300000Z"
+    ORGANIZATION "inf.ufrgs.br"
+    CONTACT-INFO    
+	"email:    matheusdot@gmail.com"
+    DESCRIPTION
+	"Top-level infrastructure of the Traffic Management System MIB tree"
+    REVISION     "201408300000Z"
+    DESCRIPTION
+	"First draft"
+    ::= { enterprises 12619 }
+
+-- *****************************
+-- Top-level structure
+-- *****************************
+
+system             OBJECT IDENTIFIER ::= {traffic 1}
+statistics         OBJECT IDENTIFIER ::= {traffic 2}
+helpers            OBJECT IDENTIFIER ::= {traffic 3}
+trafficConformance OBJECT IDENTIFIER ::= {traffic 4}
+
+---
+-- system
+---
+
+sysID OBJECT-TYPE 
+    SYNTAX OCTET STRING 
+    MAX-ACCESS read-write
+    STATUS current 
+    DESCRIPTION
+    "Identifier used by the manager to easily recognize a device"
+    ::= { system 1 }
+
+sysLatitude OBJECT-TYPE 
+    SYNTAX OCTET STRING 
+    MAX-ACCESS read-only
+    STATUS current 
+    DESCRIPTION
+    "Latitude of the device, which must be a string representing a fixed point number with precision 6."
+    ::= { system 2 }
+
+sysLongitude OBJECT-TYPE 
+    SYNTAX OCTET STRING 
+    MAX-ACCESS read-only
+    STATUS current 
+    DESCRIPTION
+    "Longitude of the device, which must be a string representing a fixed point number with precision 6."
+    ::= { system 3 }
+
+sysType OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+    "Type of the system. It can be: 'semaphore', 'carCounter', 
+    'radar', 'barrier', 'lightBulb', 'lightSensor', 'weatherSensor', 
+    'digitalBoard', 'accidentReporter'."
+    ::= { system 4 }
+
+--- 
+-- statistics
+---
+
+-- Radar
+
+statRadar OBJECT IDENTIFIER ::= {statistics 1}
+
+radMultas OBJECT-TYPE
+    SYNTAX Counter64 
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+    "Number of fines registred by this device"
+    DEFVAL      { 0 }
+    ::= { statRadar 1 }
+
+radMaxSamples OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+    "Max number of fines this device can store."
+    DEFVAL      { 0 }
+    ::= { statRadar 2 }
+
+radLimitSamples OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    "Limit of fines this device will store. The value is
+    setted by the manager and can be at most equal to radMaxSamples"
+    DEFVAL      { 0 }
+    ::= { statRadar 3 }
+
+radMultaTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF RadMultaEntry 
+    MAX-ACCESS not-accessible 
+    STATUS current
+    DESCRIPTION
+    "This table contains all fines stored by the device"
+    ::= { statRadar 4 }
+
+radMultaEntry OBJECT-TYPE
+    SYNTAX RadMultaEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+    "A row describing a fine"
+        INDEX { radMultaID }
+    ::= {radMultaTable 1}
+
+RadMultaEntry ::= SEQUENCE {
+    radMultaID        Unsigned32,
+    radMultaSpeed     Unsigned32,
+    radMultaTimestamp TimeStamp
+}
+
+radMultaID OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS not-accessible 
+    STATUS current
+    DESCRIPTION
+    "Fine identifier"
+    ::= { radMultaEntry 2 }
+
+radMultaSpeed OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-only 
+    STATUS current
+    DESCRIPTION
+    "Speed registred by the device"
+    ::= { radMultaEntry 3 }
+
+radMultaTimestamp OBJECT-TYPE
+    SYNTAX TimeStamp 
+    MAX-ACCESS read-only 
+    STATUS current
+    DESCRIPTION
+    "Timestamp of the fine"
+    ::= { radMultaEntry 4 }
+
+-- Counter
+
+statCounter OBJECT IDENTIFIER ::= { statistics 2 }
+
+cntCars OBJECT-TYPE
+    SYNTAX Counter64 
+    MAX-ACCESS read-only 
+    STATUS current
+    DESCRIPTION
+    "Number of cars this device has registred since its on"
+    ::= { statCounter 1 }
+
+-- Sensors
+
+statSensors OBJECT IDENTIFIER ::= { statistics 3 }
+
+--- Weather
+
+sensorWeather OBJECT IDENTIFIER ::= { statSensors 1 }
+
+weaSamples OBJECT-TYPE
+    SYNTAX Counter64 
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+    "Number of samples taken by the device"
+    DEFVAL      { 0 }
+    ::= { sensorWeather 1 }
+
+weaMaxSamples OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+    "Max number of samples this device can  store"
+    DEFVAL      { 0 }
+    ::= { sensorWeather 2 }
+
+weaLimitSamples OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    "Limit of samples this device will store. This value is setted by 
+    the manager and can be at most equals to weaMaxSamples"
+    DEFVAL      { 0 }
+    ::= { sensorWeather 3 }
+
+weaSampleTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF WeaSampleEntry 
+    MAX-ACCESS not-accessible 
+    STATUS current
+    DESCRIPTION
+    "This table contains all the samples stored in the device"
+    ::= { sensorWeather 4 }
+
+weaSampleEntry OBJECT-TYPE
+    SYNTAX WeaSampleEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+    "A row describing a sample"
+        INDEX { weaSampleID }
+    ::= { weaSampleTable 1}
+
+WeaSampleEntry ::= SEQUENCE {
+    weaSampleID         Unsigned32,
+    weaSampleHumidity   Unsigned32,
+    weaSampleRainSpeed  Unsigned32,
+    weaSampleTimestamp  TimeStamp
+}
+
+weaSampleID OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS not-accessible 
+    STATUS current
+    DESCRIPTION
+    "Sample identifier"
+    ::= { weaSampleEntry 1 }
+
+weaSampleHumidity OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-only 
+    STATUS current
+    DESCRIPTION
+    "Humidity registred by the device in one sample"
+    ::= { weaSampleEntry 2 }
+
+weaSampleRainSpeed OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-only 
+    STATUS current
+    DESCRIPTION
+    "Rain speed registred by the device in one sample"
+    ::= { weaSampleEntry 3 }
+
+weaSampleTimestamp OBJECT-TYPE
+    SYNTAX TimeStamp 
+    MAX-ACCESS read-only 
+    STATUS current
+    DESCRIPTION
+    "Timestamp of the sample"
+    ::= { weaSampleEntry 4 }
+
+-- Light Sensor
+
+sensorLight OBJECT IDENTIFIER ::= { statSensors 2 }
+
+lightSamples OBJECT-TYPE
+    SYNTAX Counter64 
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+    "Number of samples taken by the device"
+    DEFVAL      { 0 }
+    ::= { sensorLight 1 }
+
+lightMaxSamples OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+    "Max number of samples this device can  store"
+    DEFVAL      { 0 }
+    ::= { sensorLight 2 }
+
+lightLimitSamples OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    "Limit of samples this device will store. This value is setted by 
+    the manager and can be at most equals to weaMaxSamples"
+    DEFVAL      { 0 }
+    ::= { sensorLight 3 }
+
+lightSampleTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF LightSampleEntry 
+    MAX-ACCESS not-accessible 
+    STATUS current
+    DESCRIPTION
+    "This table contains all the samples stored by the device"
+    ::= { sensorLight 4 }
+
+lightSampleEntry OBJECT-TYPE
+    SYNTAX LightSampleEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+    "A row describing a sample"
+        INDEX { lightSampleID }
+    ::= { lightSampleTable 1}
+
+LightSampleEntry ::= SEQUENCE {
+    lightSampleID         Unsigned32,
+    lightSampleIntensity  Unsigned32,
+    lightSampleTimestamp  TimeStamp
+}
+
+lightSampleID OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS not-accessible 
+    STATUS current
+    DESCRIPTION
+    "Sample identifier"
+    ::= { lightSampleEntry 1 }
+
+lightSampleIntensity OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-only 
+    STATUS current
+    DESCRIPTION
+    "Light intensity registred by the device in one sample"
+    ::= { lightSampleEntry 2 }
+
+lightSampleTimestamp OBJECT-TYPE
+    SYNTAX TimeStamp 
+    MAX-ACCESS read-only 
+    STATUS current
+    DESCRIPTION
+    "Timestamp of the sample"
+    ::= { lightSampleEntry 3 }
+
+
+-- Accidents
+
+statAccidents OBJECT IDENTIFIER ::= { statistics 4 }
+
+acOcorrences OBJECT-TYPE
+    SYNTAX Counter64 
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+    "Number of accidents registred by the device"
+    DEFVAL      { 0 }
+    ::= { statAccidents 1 }
+
+acMaxOcorrences OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+    "Max number of accidents this device can keep stored"
+    DEFVAL      { 0 }
+    ::= { statAccidents 2 }
+
+acLimitOcorrences OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    "Limit of accidents this device will keep stored. This value is setted by 
+    the manager and can be at most equals to acMaxOcorrences"
+    DEFVAL      { 0 }
+    ::= { statAccidents 3 }
+
+acOcorrenceTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF AcOcorrenceEntry 
+    MAX-ACCESS not-accessible 
+    STATUS current
+    DESCRIPTION
+    "This table contains all the accidents stored in the device"
+    ::= { statAccidents 4 }
+
+acOcorrenceEntry OBJECT-TYPE
+    SYNTAX AcOcorrenceEntry 
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+    "A row describing an accident"
+        INDEX { acOcorrenceID }
+    ::= { acOcorrenceTable 1}
+
+AcOcorrenceEntry ::= SEQUENCE {
+    acOcorrenceID         Unsigned32,
+    acOcorrenceGravity    Unsigned32,
+    acOcorrenceLatitude   OCTET STRING,
+    acOcorrenceLongitude  OCTET STRING,
+    acOcorrenceTimestamp  TimeStamp
+}
+
+acOcorrenceID OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS not-accessible 
+    STATUS current
+    DESCRIPTION
+    "Accident identifier"
+    ::= { acOcorrenceEntry 1 }
+
+acOcorrenceGravity OBJECT-TYPE
+    SYNTAX Unsigned32 
+    MAX-ACCESS read-only 
+    STATUS current
+    DESCRIPTION
+    "Gravity of the accident"
+    ::= { acOcorrenceEntry 2 }
+
+acOcorrenceLatitude OBJECT-TYPE 
+    SYNTAX OCTET STRING 
+    MAX-ACCESS read-only
+    STATUS current 
+    DESCRIPTION
+    "Latitude of the accident, which must be a string representing a fixed point number with precision 6."
+    ::= { acOcorrenceEntry 3 }
+
+acOcorrenceLongitude OBJECT-TYPE 
+    SYNTAX OCTET STRING 
+    MAX-ACCESS read-only
+    STATUS current 
+    DESCRIPTION
+    "Longitude of the accident, which must be a string representing a fixed point number with precision 6."
+    ::= { acOcorrenceEntry 4 }
+
+acOcorrenceTimestamp OBJECT-TYPE
+    SYNTAX TimeStamp 
+    MAX-ACCESS read-only 
+    STATUS current
+    DESCRIPTION
+    "Timestamp of the accident"
+    ::= { acOcorrenceEntry 5 }
+
+-- Helpers 
+
+helpSemaphore     OBJECT IDENTIFIER ::= { helpers 1 }
+helpLightBulb     OBJECT IDENTIFIER ::= { helpers 2 }
+helpDigitalBoard  OBJECT IDENTIFIER ::= { helpers 3 }
+
+-- Semaphore
+
+semStatus OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+    "Status of the device. It can bem 'green', 'yellow' or 'red'"
+    ::= { helpSemaphore 1 }
+
+semTimeToRed OBJECT-TYPE
+    SYNTAX TimeInterval
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    "Time the device will stay green."
+    ::= { helpSemaphore 2 }
+
+semTimeToGreen OBJECT-TYPE
+    SYNTAX OCTET STRING
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    "Time the device will stay red."
+    ::= { helpSemaphore 3 }
+
+-- LightBulbs
+
+lightBulbIntensity OBJECT-TYPE
+    SYNTAX Unsigned32
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    "Light intensity of the device. This should be a value between 0 and 100."
+    ::= { helpLightBulb 1 }
+
+-- Digital Board
+
+digNumLines OBJECT-TYPE
+    SYNTAX Unsigned32
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    "Number of lines this device can display"
+    ::= { helpDigitalBoard 1 }
+
+digColsPerLine OBJECT-TYPE
+    SYNTAX Unsigned32
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    "Numbers of characters this device can display per line."
+    ::= { helpDigitalBoard 2 }
+
+digMessageTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF DigMessageEntry 
+    MAX-ACCESS not-accessible 
+    STATUS current
+    DESCRIPTION
+    "This table stores the characters being 
+    displayed in each line of the device."
+    ::= { helpDigitalBoard 3 }
+
+digMessageEntry OBJECT-TYPE
+    SYNTAX DigMessageEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+    "A row describing the text being displayed on a line of the device."
+    INDEX { digMessageRow }
+    ::= { digMessageTable 1 }
+
+DigMessageEntry ::= SEQUENCE {
+    digMessageRow Unsigned32,
+    digMessageText OCTET STRING
+}
+
+digMessageRow OBJECT-TYPE
+    SYNTAX Unsigned32
+    MAX-ACCESS not-accessible 
+    STATUS current
+    DESCRIPTION
+    "Row number of the line in the device."
+    ::= { digMessageEntry 1 }
+
+digMessageText OBJECT-TYPE
+    SYNTAX OCTET STRING  
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+    "Text of that line in the device."
+    ::= { digMessageEntry 2 }
+
+-- *************************
+-- Conformance information
+-- *************************
+
+trafficCompliances OBJECT IDENTIFIER ::= {trafficConformance 1}
+trafficGroups OBJECT IDENTIFIER      ::= {trafficConformance 2}
+
+-- *************************
+-- Compliance statements 
+-- *************************
+
+trafficCompliance MODULE-COMPLIANCE
+    STATUS current
+    DESCRIPTION
+    "The compliance of all the groups in the MIB"
+    MODULE
+    MANDATORY-GROUPS {
+        systemGroup
+    }
+    GROUP statRadioGroup
+    DESCRIPTION
+    "If this group is present, statCounterGroup must be present aswell."
+    GROUP statCounterGroup
+    DESCRIPTION
+    "This group can be present individually"
+    GROUP sensorWeatherGroup 
+    DESCRIPTION
+    "This group can be present individually"
+    GROUP sensorLightGroup
+    DESCRIPTION
+    "This group can be present individually"
+    GROUP statAccidentsGroup
+    DESCRIPTION
+    "This group can be present individually"
+    GROUP helpSemaphoreGroup 
+    DESCRIPTION
+    "If this group is present, statCounterGroup must be present aswell."
+    GROUP helpLightBulbGroup
+    DESCRIPTION
+    "This group can be present individually"
+    GROUP helpDigitalBoardGroup
+    DESCRIPTION
+    "This group can be present individually"
+    ::= {trafficCompliances 1}
+
+-- *************************
+-- Units of conformance 
+-- *************************
+
+systemGroup OBJECT-GROUP
+    OBJECTS {
+        sysID,
+        sysLatitude,
+        sysLongitude,
+        sysType
+    }
+    STATUS current
+    DESCRIPTION
+    "This group represent all objects common to any device implementing that MIB"
+    ::= { trafficGroups 1 }
+
+statRadioGroup OBJECT-GROUP
+    OBJECTS {
+        radMultas,
+        radMaxSamples,
+        radLimitSamples,
+        radMultaSpeed,
+        radMultaTimestamp
+    }
+    STATUS current
+    DESCRIPTION
+    "This group is used only by devices which sysType is either 'radio' or 'barrier'."
+    ::= { trafficGroups 2 }
+
+statCounterGroup OBJECT-GROUP
+    OBJECTS {
+        cntCars
+    }
+    STATUS current
+    DESCRIPTION
+    "This group is used only by devices which sysType is either 'radio', 'barrier' or 'carCounter'"
+    ::= { trafficGroups 3 }
+
+sensorWeatherGroup OBJECT-GROUP
+    OBJECTS {
+        weaSamples,
+        weaMaxSamples,
+        weaLimitSamples,
+        weaSampleRainSpeed,
+        weaSampleHumidity,
+        weaSampleTimestamp
+    }
+    STATUS current
+    DESCRIPTION
+    "This group is used only by devices which sysType is 'weatherSensor'"
+    ::= { trafficGroups 4 }
+
+sensorLightGroup OBJECT-GROUP
+    OBJECTS {
+        lightSamples,
+        lightMaxSamples,
+        lightLimitSamples,
+        lightSampleIntensity,
+        lightSampleTimestamp
+    }
+    STATUS current
+    DESCRIPTION
+    "This group is used only by devices which sysType is 'lightSensor'"
+    ::= { trafficGroups 5 }
+
+statAccidentsGroup OBJECT-GROUP
+    OBJECTS {
+        acOcorrences,
+        acMaxOcorrences,
+        acLimitOcorrences,
+        acOcorrenceGravity,
+        acOcorrenceLatitude,
+        acOcorrenceLongitude,
+        acOcorrenceTimestamp
+    }
+    STATUS current
+    DESCRIPTION
+    "This group is used only by devices which sysType is 'accidentReporter'"
+    ::= { trafficGroups 6 }
+
+helpSemaphoreGroup OBJECT-GROUP
+    OBJECTS {
+        semStatus,
+        semTimeToRed,
+        semTimeToGreen
+    }
+    STATUS current
+    DESCRIPTION
+    "This group is used only by devices which sysType is 'semaphore'"
+    ::= { trafficGroups 7 }
+
+helpLightBulbGroup OBJECT-GROUP
+    OBJECTS {
+        lightBulbIntensity
+    }
+    STATUS current
+    DESCRIPTION
+    "This group is used only by devices which sysType is 'lightBulb'"
+    ::= { trafficGroups 8 }
+
+helpDigitalBoardGroup OBJECT-GROUP
+    OBJECTS {
+        digNumLines,
+        digColsPerLine,
+        digMessageText
+    }
+    STATUS current
+    DESCRIPTION
+    "This group is used only by devices which sysType is 'digitalBoard'"
+    ::= { trafficGroups 9 }
+END
+
