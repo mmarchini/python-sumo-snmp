@@ -26,7 +26,7 @@ class SNMPAgent(object):
     """Implements an Agent that serves the custom MIB.
     """
 
-    def __init__(self, mibObjects):
+    def __init__(self, mibObjects, port=9000, community="public"):
         """
         mibObjects - a list of MibObject tuples that this agent
         will serve
@@ -37,10 +37,10 @@ class SNMPAgent(object):
 
         #open a UDP socket to listen for snmp requests
         config.addSocketTransport(self._snmpEngine, udp.domainName,
-                                  udp.UdpTransport().openServerMode(('', 9000)))
+                                  udp.UdpTransport().openServerMode(('', port)))
 
         #add a v2 user with the community string public
-        config.addV1System(self._snmpEngine, "agent", "public")
+        config.addV1System(self._snmpEngine, "agent", community)
         #let anyone accessing 'public' read anything in the subtree below,
         #which is the enterprises subtree that we defined our MIB to be in
         config.addVacmUser(self._snmpEngine, 2, "agent", "noAuthNoPriv",
@@ -75,9 +75,9 @@ class SNMPAgent(object):
                                      **instanceDict)
 
         # tell pysnmp to respotd to get, set, getnext, and getbulk
-        # cmdrsp.GetCommandResponder(self._snmpEngine, self._snmpContext)
-        # cmdrsp.SetCommandResponder(self._snmpEngine, self._snmpContext)
-        # cmdrsp.NextCommandResponder(self._snmpEngine, self._snmpContext)
+        cmdrsp.GetCommandResponder(self._snmpEngine, self._snmpContext)
+        cmdrsp.SetCommandResponder(self._snmpEngine, self._snmpContext)
+        cmdrsp.NextCommandResponder(self._snmpEngine, self._snmpContext)
         cmdrsp.BulkCommandResponder(self._snmpEngine, self._snmpContext)
 
 

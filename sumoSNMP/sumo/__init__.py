@@ -27,6 +27,7 @@ class Sumo(object):
 
     def step(self, steps=1):
         for i in range(steps):
+            print "One more step!"
             self._traci.simulationStep()
 
     def get_all_vehicles(self):

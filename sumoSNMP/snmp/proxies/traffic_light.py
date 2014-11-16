@@ -8,7 +8,16 @@ class TrafficLightMib(object):
 		self._traffic_light = traffic_light
 
 	def getSysID(self):
-		pass
+		return self._traffic_light._id
 
 	def setSysID(self, sysID):
 		pass
+
+	def getStatus(self):
+		return self._traffic_light.state
+
+	def getYellowDuration(self):
+		return self._traffic_light.yellow_duration
+
+	def getRedDuration(self):
+		return self._traffic_light.red_duration
